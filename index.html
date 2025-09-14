@@ -153,7 +153,11 @@
         const key = tops.length===1 ? tops[0] : 'MIX';
 
         const r = resultTexts[key];
-        const headlineMap = {A:'Ügyes vagy', B:'Nem rossz', C:'Van még mit fejlődnöd', MIX:'Nagyon kreatív vagy'};
+        const headlineMap = {
+          A: 'The Early Bird – A koránkelő',
+          B: 'The Chill Roomie – A laza szobatárs',
+          C: 'The Party Starter – A bulikirály',
+          MIX: 'The All-Rounder – A mindenhez értő'};
         const title = `${r.title} — ${headlineMap[key]}`;
 
         result.querySelector('h2').textContent = title;
