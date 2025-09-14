@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Milyen szobatárs lennél a kollégiumban?</title>
+  <meta name="description" content="Válaszolj 8 kérdésre (A/B/C), és azonnal megkapod az értékelést – e-mail és bejelentkezés nélkül." />
+  <style>
+    :root{
+      --red:#e11d48;
+      --blue:#1d4ed8;
+      --dark:#0f172a;
+      --light:#ffffff;
+      --muted:#f8fafc;
+    }
+    html,body{height:100%}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial;
+      background:var(--light); color:var(--dark);}
+    .stars{position:fixed;inset:0;pointer-events:none;opacity:.1;background-image:
+      radial-gradient(var(--red) 2px, transparent 3px),
+      radial-gradient(var(--blue) 2px, transparent 3px);
+      background-size:60px 60px, 80px 80px; background-position:10px 20px, 40px 30px;}
+    .container{max-width:960px;margin:0 auto;padding:24px;}
+    header{display:flex;align-items:center;gap:16px;padding:24px;border-radius:20px;
+      background:linear-gradient(135deg, rgba(225,29,72,.08), rgba(29,78,216,.08));
+      box-shadow: 0 10px 30px rgba(2,6,23,.08);}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
+      background:var(--dark);color:#fff;font-weight:600;font-size:12px;letter-spacing:.02em;text-transform:uppercase;}
+    h1{margin:0;font-size:clamp(26px,4vw,40px);line-height:1.1;}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:24px;
+      box-shadow:0 12px 30px rgba(2,6,23,.06);}
+    .q{margin-bottom:20px;}
+    .q h3{margin:0 0 10px;font-size:18px;}
+    .opts{display:grid;gap:10px;}
+    .opt{display:flex;align-items:center;gap:10px;background:var(--muted);border-radius:12px;
+      padding:12px 14px;cursor:pointer;transition:.2s ease;border:1px solid transparent;}
+    .opt:hover{transform:translateY(-1px);border-color:#cbd5e1;}
+    .opt input{width:18px;height:18px;accent-color:var(--blue);}
+    .letters{font-weight:700;color:var(--blue);min-width:24px;text-align:center;}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+    button{appearance:none;border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;}
+    .primary{background:var(--blue);color:#fff;}
+    .mutedBtn{background:#fff;color:#0f172a;border:2px solid #e2e8f0;}
+    .result{margin-top:24px;padding:22px;border-radius:16px;border:1px dashed #cbd5e1;
+      background:linear-gradient(135deg, rgba(225,29,72,.07), rgba(29,78,216,.07));}
+    .result h2{margin:0 0 8px;font-size:22px;}
+    .counts{font-size:14px;opacity:.8;}
+    footer{margin:32px 0;font-size:12px;opacity:.7;}
+    .qrslot{margin-left:auto;border:2px dashed #cbd5e1;border-radius:12px;padding:10px 12px;background:#fff;
+      color:#64748b;font-size:12px;display:flex;align-items:center;gap:8px;}
+    .qrbox{width:48px;height:48px;border:2px dashed #94a3b8;border-radius:8px;}
+    @media (max-width:640px){header{flex-direction:column;align-items:flex-start;}.qrslot{margin-left:0;}}
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="container">
+    <header>
+      <div class="badge">Interaktív játék</div>
+      <div>
+        <h1>Tudd meg, milyen szobatárs lennél a kollégiumban!</h1>
+        <div style="opacity:.75">Válaszolj 8 kérdésre (A/B/C), a végén azonnal megkapod az értékelést. E‑mail nem kell. 🙂</div>
+      </div>
+      <div class="qrslot" title="Ha plakátra teszed a linket, ide illeszthetsz QR képet.">
+        <div class="qrbox"></div>
+        QR-hely (opcionális)
+      </div>
+    </header>
+
+    <main class="card" id="app"></main>
+
+    <footer>
+      Tipp: a kérdések/eredmények a fájl alján, a <strong>CONFIG</strong> részben szerkeszthetők.
+    </footer>
+  </div>
+
+  <script>
+    // ===== CONFIG: a dokumentumodban szereplő kérdések és értékelések =====
+    const quiz = [
+      { q: "1. Reggel mikor kelsz fel?", A: "6–7 között, frissen és üdén", B: "Csak a második ébresztő után", C: "Délig, ha lehet" },
+      { q: "2. Hogyan néz ki az íróasztalod?", A: "Rendezett, szín szerint rendszerezve", B: "Kicsit kaotikus, de én tudom, hol van minden", C: "Üres – én a kanapén/ágyban szeretek tanulni" },
+      { q: "3. Mi a kedvenc esti programod?", A: "Edzés vagy sportmeccs", B: "Sorozat- vagy filmnézés", C: "Party vagy közös játék a haverokkal" },
+      { q: "4. Hogyan reagálsz, ha a szobatársad hangosan telefonál?", A: "Megkérem, hogy halkabban beszéljen", B: "Beteszek fülhallgatót", C: "Csatlakozom a beszélgetéshez" },
+      { q: "5. Mit viszel magaddal legszívesebben a kollégiumba?", A: "Jegyzetek, tanulnivaló", B: "Sportcucc és cipők", C: "Hangfal, társasjáték" },
+      { q: "6. Mi az, ami a legjobban jellemez?", A: "Precíz, mindig időben vagyok", B: "Kreatív, kicsit bohém", C: "Laza, mindenkivel kijövök" },
+      { q: "7. Milyen lenne az ideális szobatársad?", A: "Halk és rendszerető", B: "Laza és vicces", C: "Mindegy, csak ne legyen unalmas" },
+      { q: "8. Melyik ital illik rád legjobban?", A: "Kávé – mindig pörgök", B: "Tea – nyugodt, békés", C: "Limonádé – bulis és frissítő" }
+    ];
+
+    const resultTexts = {
+      A: { title: "The Early Bird", text: "Te vagy a szorgalmas, rendmániás szobatárs. Melletted nem marad el a tanulás!" },
+      B: { title: "The Chill Roomie", text: "Laza, kreatív és mindig nyugis. Jó fej, akivel könnyű együtt lakni." },
+      C: { title: "The Party Starter", text: "Te vagy a kollégiumi élet motorja! Mindig történik körülötted valami." },
+      MIX:{ title: "The All-Rounder", text: "Te bárkivel kijössz, bármilyen szobában megtalálod a helyed." }
+    };
+
+    // ===== APP =====
+    const app = document.getElementById('app');
+
+    function el(tag, attrs={}, ...children){
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v])=>{
+        if(k==='class') e.className=v;
+        else if(k==='html') e.innerHTML=v;
+        else e.setAttribute(k,v);
+      });
+      children.forEach(ch=> e.appendChild(typeof ch==="string"? document.createTextNode(ch) : ch));
+      return e;
+    }
+
+    function render(){
+      app.innerHTML = '';
+      const form = el('form');
+
+      quiz.forEach((item, idx) => {
+        const name = `q${idx+1}`;
+        const block = el('div', {class:'q'});
+        block.appendChild(el('h3', {html: item.q}));
+
+        const opts = el('div', {class:'opts'});
+        [['A','a)'],['B','b)'],['C','c)']].forEach(([letter, labelPrefix]) => {
+          const id = `${name}_${letter}`;
+          const label = el('label', {class:'opt', for:id});
+          const input = el('input', {type:'radio', name, id, value:letter, required:true});
+          const badge = el('div', {class:'letters'}, labelPrefix.toUpperCase().replace(')',' )'));
+          const text = el('div', {}, `${item[letter]}`);
+          label.appendChild(input); label.appendChild(badge); label.appendChild(text);
+          opts.appendChild(label);
+        });
+        block.appendChild(opts);
+        form.appendChild(block);
+      });
+
+      const actions = el('div', {class:'actions'});
+      const submitBtn = el('button', {type:'submit', class:'primary'}, 'Kiértékelés');
+      const resetBtn  = el('button', {type:'button', class:'mutedBtn'}, 'Újrakezdés');
+      actions.appendChild(submitBtn); actions.appendChild(resetBtn);
+      form.appendChild(actions);
+
+      const result = el('div', {class:'result', id:'result', style:'display:none'});
+      result.appendChild(el('h2'));
+      result.appendChild(el('div', {class:'counts'}));
+      const p = el('p'); result.appendChild(p);
+      form.appendChild(result);
+
+      resetBtn.addEventListener('click', ()=>{ form.reset(); result.style.display='none'; window.scrollTo({top:0, behavior:'smooth'}); });
+
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const data = new FormData(form);
+        let A=0,B=0,C=0;
+        for (let [,v] of data.entries()){
+          if(v==='A') A++; else if(v==='B') B++; else if(v==='C') C++;
+        }
+        const max = Math.max(A,B,C);
+        const tops = ['A','B','C'].filter(k => ({A,B,C}[k]===max));
+        const key = tops.length===1 ? tops[0] : 'MIX';
+
+        const r = resultTexts[key];
+        const headlineMap = {A:'Ügyes vagy', B:'Nem rossz', C:'Van még mit fejlődnöd', MIX:'Nagyon kreatív vagy'};
+        const title = `${r.title} — ${headlineMap[key]}`;
+
+        result.querySelector('h2').textContent = title;
+        result.querySelector('.counts').textContent = `A: ${A}  •  B: ${B}  •  C: ${C}`;
+        result.querySelector('p').textContent = r.text;
+        result.style.display='block';
+        result.scrollIntoView({behavior:'smooth'});
+      });
+
+      app.appendChild(form);
+    }
+
+    render();
+  </script>
+</body>
+</html>
